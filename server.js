@@ -5,6 +5,7 @@ const cors = require("cors");
 const winston = require("winston");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -45,6 +46,9 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Serve the frontend theme (static assets, like HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, "public")));
 
 // Root route (added for 404 handling and general response)
 app.get("/", (req, res) => {
@@ -129,6 +133,9 @@ app.post("/api/spam", async (req, res) => {
       await Promise.all(requests);
 
       sharedCount += sharesToProcess;
+
+      // Log progress in the backend for internal use
+      logger.info(`Shared ${sharedCount} out of ${totalShares} times.`);
 
       // Simulate delay
       if (sharedCount < totalShares) {
