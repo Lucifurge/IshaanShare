@@ -1,0 +1,17 @@
+{
+  "name": "ishaanshares-backend",
+  "version": "1.0.0",
+  "description": "Backend for the Ishaanshares auto-sharing tool",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {},
+  "author": "Ishaan's Developer",
+  "license": "MIT"
+}
