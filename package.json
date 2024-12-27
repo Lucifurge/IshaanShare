@@ -4,8 +4,8 @@
   "description": "Backend for the Ishaanshares auto-sharing tool",
   "main": "server.js",
   "scripts": {
-    "start": "node spam.js",
-    "dev": "nodemon spam.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "axios": "^1.7.9",
