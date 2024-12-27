@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://frontend-253d.onrender.com/#share",
+    origin: "https://frontend-253d.onrender.com",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
