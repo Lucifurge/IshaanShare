@@ -104,6 +104,12 @@ app.post("/api/spam", async (req, res) => {
     return res.status(400).json({ message: "All fields are required." });
   }
 
+  // Validate and Extract Post ID from the given Facebook Link
+  const postId = extractPostIdFromFbLink(fbLink);
+  if (!postId) {
+    return res.status(400).json({ message: "Invalid Facebook post link." });
+  }
+
   // Prepare cookies header
   const cookiesHeader = cookies
     .map((cookie) => `${cookie.key}=${cookie.value}`)
@@ -151,6 +157,27 @@ app.post("/api/spam", async (req, res) => {
     return res.status(500).json({ message: "An error occurred while processing your request." });
   }
 });
+
+/**
+ * Function to extract post ID from a Facebook link.
+ * It works for both:
+ * 1. https://www.facebook.com/share/{postID}/
+ * 2. https://www.facebook.com/{username}/posts/{postID}
+ * 
+ * @param {string} fbLink - The Facebook link containing the post ID.
+ * @returns {string|null} - The extracted post ID or null if invalid.
+ */
+function extractPostIdFromFbLink(fbLink) {
+  // Match URL for post links
+  const regex = /(?:facebook\.com\/(?:share\/|[^\/]+\/posts\/))([a-zA-Z0-9_-]+)/;
+  const match = fbLink.match(regex);
+
+  if (match && match[1]) {
+    return match[1]; // Return post ID if matched
+  }
+
+  return null; // Return null if no valid post ID is found
+}
 
 // Health check route
 app.get("/status", (req, res) => {
