@@ -38,11 +38,18 @@ const logger = winston.createLogger({
 // Middleware setup
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-  origin: "https://frontend-253d.onrender.com", 
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: "https://frontend-253d.onrender.com",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// Root route (added for 404 handling and general response)
+app.get("/", (req, res) => {
+  res.send("Welcome to Ishaanshares Backend API!");
+});
 
 // API Route to handle post sharing requests
 /**
