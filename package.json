@@ -1,25 +1,20 @@
 {
-  "name": "ishaanshares-backend",
+  "name": "facebook-share-simulation",
   "version": "1.0.0",
-  "description": "Backend for the Ishaanshares auto-sharing tool",
+  "description": "Backend to simulate Facebook post sharing using cookies",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "axios": "^1.7.9",
-    "cookie-parser": "^1.4.7",
-    "express": "^4.21.2",
+    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
-    "winston": "^3.17.0",
-    "swagger-ui-express": "^5.0.1",
-    "swagger-jsdoc": "^6.2.8",
-    "path": "^0.12.7"
+    "express": "^4.21.2",
+    "node-fetch": "^3.2.2"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
+  "engines": {
+    "node": ">=14.0.0"
   },
-  "author": "Ishaan's Developer",
+  "author": "Husband of Ishaan",
   "license": "MIT"
 }
