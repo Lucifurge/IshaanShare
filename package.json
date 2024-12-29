@@ -16,5 +16,6 @@
     "node": ">=v22.12.0"
   },
   "author": "Husband of Ishaan",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module"
 }
