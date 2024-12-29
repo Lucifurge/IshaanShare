@@ -1,200 +1,80 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
-const axios = require("axios");
+const bodyParser = require("body-parser");
+const fetch = require("node-fetch");
 const cors = require("cors");
-const winston = require("winston");
-const swaggerUi = require("swagger-ui-express");
-const swaggerJsdoc = require("swagger-jsdoc");
-const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Swagger setup
-const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Post Spam API",
-      version: "1.0.0",
-      description: "API to simulate post sharing on Facebook with dynamic cookies",
-    },
-  },
-  apis: ["./server.js"], // Points to the file containing API documentation
+// Middleware
+app.use(bodyParser.json());
+
+// Enable CORS for your frontend only
+const corsOptions = {
+    origin: "https://frontend-253d.onrender.com",  // Allow requests only from this domain
+    methods: ["GET", "POST"], // Allow GET and POST methods
+    allowedHeaders: ["Content-Type"], // Allow specific headers
 };
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// Logger setup
-const logger = winston.createLogger({
-  level: "info",
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    }),
-    new winston.transports.File({ filename: "combined.log" }),
-  ],
-});
+app.use(cors(corsOptions)); // Apply CORS with the specified options
 
-// Middleware setup
-app.use(express.json());
-app.use(cookieParser());
-app.use(
-  cors({
-    origin: "https://frontend-253d.onrender.com",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// Placeholder function to simulate the sharing process
+async function sharePost(cookies, postUrl, amounts, interval) {
+    // Format cookies into a single string for the 'cookie' header
+    const cookieHeader = cookies.map(cookie => `${cookie.key}=${cookie.value}`).join("; ");
 
-// Serve the frontend theme (static assets, like HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, "public")));
+    const process = [];
+    for (let i = 1; i <= amounts; i++) {
+        process.push({
+            index: i,
+            status: "Sharing...",
+            progress: Math.min(100, (i / amounts) * 100)
+        });
 
-// Root route (added for 404 handling and general response)
-app.get("/", (req, res) => {
-  res.send("Welcome to Ishaanshares Backend API!");
-});
-
-// API Route to handle post sharing requests
-/**
- * @swagger
- * /api/spam:
- *   post:
- *     summary: Share posts on Facebook
- *     description: Simulates sharing a post on Facebook using dynamic cookies.
- *     parameters:
- *       - in: body
- *         name: requestBody
- *         description: The request body containing cookies, link, share count, and interval.
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             cookies:
- *               type: array
- *               description: The cookies needed to authenticate the requests
- *               items:
- *                 type: object
- *                 properties:
- *                   key:
- *                     type: string
- *                   value:
- *                     type: string
- *             fbLink:
- *               type: string
- *               description: The link of the post to be shared
- *             shareCount:
- *               type: integer
- *               description: Number of times to share the post
- *             interval:
- *               type: integer
- *               description: Interval in seconds between shares
- *     responses:
- *       200:
- *         description: Successfully shared posts
- *       400:
- *         description: Bad request, missing fields
- *       500:
- *         description: Server error
- */
-app.post("/api/spam", async (req, res) => {
-  const { cookies, fbLink, shareCount, interval } = req.body;
-
-  if (!cookies || !fbLink || !shareCount || !interval) {
-    return res.status(400).json({ message: "All fields are required." });
-  }
-
-  // Validate and Extract Post ID from the given Facebook Link
-  const postId = extractPostIdFromFbLink(fbLink);
-  if (!postId) {
-    return res.status(400).json({ message: "Invalid Facebook post link." });
-  }
-
-  // Prepare cookies header
-  const cookiesHeader = cookies
-    .map((cookie) => `${cookie.key}=${cookie.value}`)
-    .join("; ");
-
-  try {
-    const totalShares = Math.min(shareCount, 2000000); // Limit the maximum shares to 2 million
-
-    // Simulate sharing with concurrency control and intervals
-    let sharedCount = 0;
-    while (sharedCount < totalShares) {
-      const sharesToProcess = Math.min(100, totalShares - sharedCount); // Limit concurrent requests to avoid overloading
-      const requests = [];
-
-      for (let i = 0; i < sharesToProcess; i++) {
-        requests.push(
-          axios.post(fbLink, {}, {
+        // Simulate the HTTP request to Facebook (replace with actual logic)
+        await fetch(postUrl, {
+            method: "POST",  // Or GET depending on the URL and the required method
             headers: {
-              Cookie: cookiesHeader,
-              "Content-Type": "application/json",
+                "Content-Type": "application/json",
+                "Cookie": cookieHeader  // Adding the cookies to the request headers
             },
-          })
-        );
-      }
+            body: JSON.stringify({ someData: "value" })  // Example body data, modify as needed
+        });
 
-      // Wait for all requests to complete
-      await Promise.all(requests);
-
-      sharedCount += sharesToProcess;
-
-      // Log progress in the backend for internal use
-      logger.info(`Shared ${sharedCount} out of ${totalShares} times.`);
-
-      // Simulate delay
-      if (sharedCount < totalShares) {
-        await new Promise(resolve => setTimeout(resolve, interval * 1000));
-      }
+        // Simulating a delay between shares
+        await new Promise((resolve) => setTimeout(resolve, interval * 1000));
     }
 
-    return res.json({
-      message: `Successfully shared ${totalShares} times!`,
-    });
-  } catch (error) {
-    logger.error("Error while processing request", error);
-    return res.status(500).json({ message: "An error occurred while processing your request." });
-  }
-});
-
-/**
- * Function to extract post ID from a Facebook link.
- * It works for both:
- * 1. https://www.facebook.com/share/{postID}/
- * 2. https://www.facebook.com/{username}/posts/{postID}
- * 
- * @param {string} fbLink - The Facebook link containing the post ID.
- * @returns {string|null} - The extracted post ID or null if invalid.
- */
-function extractPostIdFromFbLink(fbLink) {
-  // Match URL for post links
-  const regex = /(?:facebook\.com\/(?:share\/|[^\/]+\/posts\/))([a-zA-Z0-9_-]+)/;
-  const match = fbLink.match(regex);
-
-  if (match && match[1]) {
-    return match[1]; // Return post ID if matched
-  }
-
-  return null; // Return null if no valid post ID is found
+    // Returning the response after sharing process
+    return {
+        success: true,
+        process: process.map((p) => ({
+            ...p,
+            status: "Shared successfully!"
+        }))
+    };
 }
 
-// Health check route
-app.get("/status", (req, res) => {
-  res.status(200).json({
-    message: "Backend is up and running!",
-    status: "OK",
-    timestamp: new Date(),
-  });
-});
+// POST endpoint to handle the sharing request
+app.post("/share", async (req, res) => {
+    const { cookies, postUrl, amounts, interval } = req.body;
 
-// Log request for debugging purposes
-app.use((req, res, next) => {
-  logger.info(`Request received: ${req.method} ${req.url}`);
-  next();
+    // Check if required fields are provided
+    if (!cookies || !postUrl || !amounts || !interval) {
+        return res.status(400).json({ success: false, message: "Missing required parameters." });
+    }
+
+    try {
+        // Simulate sharing the post
+        const result = await sharePost(cookies, postUrl, amounts, interval);
+        res.json(result); // Return success response with process details
+    } catch (error) {
+        console.error("Error during sharing process:", error);
+        res.status(500).json({ success: false, message: "An error occurred while processing your request." });
+    }
 });
 
 // Start the server
 app.listen(port, () => {
-  logger.info(`Server is running on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
