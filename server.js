@@ -1,24 +1,24 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const fetch = require("node-fetch");
-const cors = require("cors");
+import express from "express";
+import bodyParser from "body-parser";
+import fetch from "node-fetch";  // ES Module import
+import cors from "cors";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
+// Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
 // Enable CORS for your frontend only
 const corsOptions = {
-    origin: "https://frontend-253d.onrender.com",  // Allow requests only from this domain
-    methods: ["GET", "POST"], // Allow GET and POST methods
-    allowedHeaders: ["Content-Type"], // Allow specific headers
+    origin: "https://frontend-253d.onrender.com",  // Replace with your frontend URL
+    methods: ["GET", "POST"],  // Allow only GET and POST methods
+    allowedHeaders: ["Content-Type"],  // Allow specific headers
 };
 
-app.use(cors(corsOptions)); // Apply CORS with the specified options
+app.use(cors(corsOptions));  // Apply CORS with the specified options
 
-// Placeholder function to simulate the sharing process
+// Function to simulate sharing a post
 async function sharePost(cookies, postUrl, amounts, interval) {
     // Format cookies into a single string for the 'cookie' header
     const cookieHeader = cookies.map(cookie => `${cookie.key}=${cookie.value}`).join("; ");
@@ -31,21 +31,29 @@ async function sharePost(cookies, postUrl, amounts, interval) {
             progress: Math.min(100, (i / amounts) * 100)
         });
 
-        // Simulate the HTTP request to Facebook (replace with actual logic)
-        await fetch(postUrl, {
-            method: "POST",  // Or GET depending on the URL and the required method
-            headers: {
-                "Content-Type": "application/json",
-                "Cookie": cookieHeader  // Adding the cookies to the request headers
-            },
-            body: JSON.stringify({ someData: "value" })  // Example body data, modify as needed
-        });
+        try {
+            // Simulate the HTTP request to Facebook (replace with actual logic)
+            await fetch(postUrl, {
+                method: "POST",  // Use the appropriate method for sharing
+                headers: {
+                    "Content-Type": "application/json",
+                    "Cookie": cookieHeader  // Add cookies to the request headers
+                },
+                body: JSON.stringify({ someData: "value" })  // Example data, modify as needed
+            });
+        } catch (error) {
+            console.error("Error during fetch request:", error);
+            return {
+                success: false,
+                message: "Failed to share post due to an error."
+            };
+        }
 
         // Simulating a delay between shares
         await new Promise((resolve) => setTimeout(resolve, interval * 1000));
     }
 
-    // Returning the response after sharing process
+    // Return the success result after sharing the post
     return {
         success: true,
         process: process.map((p) => ({
@@ -65,9 +73,9 @@ app.post("/share", async (req, res) => {
     }
 
     try {
-        // Simulate sharing the post
+        // Call the sharePost function to simulate sharing the post
         const result = await sharePost(cookies, postUrl, amounts, interval);
-        res.json(result); // Return success response with process details
+        res.json(result);  // Return success response with process details
     } catch (error) {
         console.error("Error during sharing process:", error);
         res.status(500).json({ success: false, message: "An error occurred while processing your request." });
