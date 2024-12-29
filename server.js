@@ -4,14 +4,17 @@ import fetch from "node-fetch";  // ES Module import
 import cors from "cors";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;  // Set port to 8080 for Railway
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
-// Enable CORS for your frontend only
+// Enable CORS for frontend URL
 const corsOptions = {
-    origin: "https://frontend-253d.onrender.com",  // Replace with your frontend URL
+    origin: [
+        "https://frontend-253d.onrender.com",  // Replace with your frontend URL for production
+        "http://localhost:3000",  // Allow local dev server to access the backend
+    ],  
     methods: ["GET", "POST"],  // Allow only GET and POST methods
     allowedHeaders: ["Content-Type"],  // Allow specific headers
 };
@@ -62,6 +65,11 @@ async function sharePost(cookies, postUrl, amounts, interval) {
         }))
     };
 }
+
+// Root route to check if server is online
+app.get("/", (req, res) => {
+    res.send("Server is running online!");
+});
 
 // POST endpoint to handle the sharing request
 app.post("/share", async (req, res) => {
